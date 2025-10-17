@@ -1,0 +1,1 @@
+# glossario_thread_c-
