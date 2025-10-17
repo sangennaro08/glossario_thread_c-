@@ -1,0 +1,39 @@
+librerie thread,mutex e semaphore...
+COSA CI PERMETTONO DI FARE?
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LIBRERIA thread
+
+i thread sono l'unità di lavoro più piccola su cui si può fare lavorare,accedere e modificare le proprie variabili private attraverso il processo a cui sono legate.
+
+le funziona che sono state viste sono
+
+1)
+thread ->parola chiave che permette di creare un thread
+
+scrittura del thread-> thread nome(nome_funzione,variabili,funzioni,ref(variabile funzione),...);
+
+il thread su c++ viene associato a una funzione cui adopera e ci lavora fino a che non torva un return oppure finisce di lavorare
+
+il ref() permette dui prendere per riferimento la variabile della funzione
+
+può essere aggiunto alla fine della dichiarazione un   .detach() funzione che permette di far lavorare il thread da indipendente dal main senza doverlo aspettare
+di solito è utilizzato con thread senza nome gia nella dichiaraione oppure con quelli con nome pero il .detach() è scritto dopo nel programma
+
+appena è stato dichiarato il thread inizia a lavorare
+
+2)
+
+nome_thread.join()->funzione che permette al  thread di continuare e dice al main di non continuar ficnhe il thread non finisce di lavorare
+
+3)
+
+this_thread::sleep_for();
+
+dice al thread di dormire per una quantità di tempo determinato
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LIBRERIA mutex
+
+ha varie 
+
+
+
