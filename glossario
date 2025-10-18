@@ -3,9 +3,9 @@ COSA CI PERMETTONO DI FARE?
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 LIBRERIA thread
 
-i thread sono l'unità di lavoro più piccola su cui si può fare lavorare,accedere e modificare le proprie variabili private attraverso il processo a cui sono legate.
+i thread sono l'unità di lavoro più piccola su cui si può lavorare,accedere e modificare le proprie variabili private attraverso il processo a cui sono legate.
 
-le funziona che sono state viste sono
+le funzionalità che sono state viste sono
 
 1)
 thread ->parola chiave che permette di creare un thread
@@ -14,26 +14,188 @@ scrittura del thread-> thread nome(nome_funzione,variabili,funzioni,ref(variabil
 
 il thread su c++ viene associato a una funzione cui adopera e ci lavora fino a che non torva un return oppure finisce di lavorare
 
-il ref() permette dui prendere per riferimento la variabile della funzione
+il ref() permette di prendere per riferimento la variabile della funzione
 
-può essere aggiunto alla fine della dichiarazione un   .detach() funzione che permette di far lavorare il thread da indipendente dal main senza doverlo aspettare
+può essere aggiunto alla fine della dichiarazione un   .detach() funzione che permette di far lavorare il thread indipendente dal main senza doverlo aspettare.
 di solito è utilizzato con thread senza nome gia nella dichiaraione oppure con quelli con nome pero il .detach() è scritto dopo nel programma
 
 appena è stato dichiarato il thread inizia a lavorare
 
 2)
 
-nome_thread.join()->funzione che permette al  thread di continuare e dice al main di non continuar ficnhe il thread non finisce di lavorare
+nome_thread.join()->funzione che permette al  thread di continuare e dice al main di non continuare finche il thread non finisce di lavorare
 
 3)
 
 this_thread::sleep_for();
 
-dice al thread di dormire per una quantità di tempo determinato
+dice al thread di dormire per una quantità di tempo determinato esso lascia lo spazio della CPU evitando il busy waiting
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 LIBRERIA mutex
 
-ha varie 
+un mutex viene utilizzato per la gestione della mutua esclusione di alcune risorse,ed è facile da implementare
+
+esso si può trovare in uno di due stati cioè 1 o 0 
+1=zona critica inacessibile,gia in utilizzato da un altro thread
+0=zona critica accessibile
+
+per implementarlo bisognerebbe scriverlo globalmente 
+
+mutex nome_mutex;
+
+si hanno 3 modi per creare la zona critica crenado così mutua esclusione
+
+1) IL lock_guard 
+
+lock guard sarebbe di consuetudine utlizzarlo all'interno di uno scope più piccolo e permette di bloccare gia dalla dichiarazione la zona critica
+
+DICHIARAZIONE:
+
+{
+lock_guard<mutex> lock(nome_mutex);//zona critica chiusa,non accessibile
+
+
+}//fine scope allora zona critica accessibile
+
+all'interno dello scope possono essere utlizzati i dati sensibili per le risorse necessarie a thread o processi.
+NON POSSONO ESSERE FATTI DEGLI UNLOCK FINO ALLA FINE DELLO SCOPE CHE è L'USCITA DELLA ZONA CRITICA
+
+2)unique_lock
+
+è molto simile al lock_guard pero andrebbe sempre usato all'interno di uno scope,permette di fare dei lock e unlock all'interno dello scope,esso è utile
+ grazie alla sua flessibilità
+
+DICHIARAZIONE:
+
+{
+unique_lock<mutex> lock(nome_mutex,defer_lock);//non blocca subito permettendo di essere più flessibili in alcune situazioni
+                                               //se si voleva bloccare subito si scirvere tutto tranne defer_lock
+mut.lock();
+//zona critica
+mut.unlock();
+
+}//uscita scope 
+
+Ci sono altre versione dell unqiue_lock come 
+
+unique_lock<mutex>  lock(nome,try_to_lock);
+
+esso semplicemente prova a portare il mutex a 1 se non utlizato altrimenti se gia occupato non fa niente,di solito è utlizzato con lock utilizzate in 
+condizioni così da vedere apropriatamente se la zona critica è libera o meno
+
+esempio:
+
+{
+unique_lock<mutex> lock(nome,try_to_lock);
+
+if(lock.owns_lock()){
+//ottiene la zona critica se è libera
+
+}//se non è libera non entra in zona critica
+
+
+}
+
+3)utlizzito di nome.lock() nome.unlock() 
+
+serve per creare manualmente la zona critica
+
+esempio:
+
+nome.lock();
+
+//zona critica
+
+nome.unlock();
+
+ATTENZIONE:LA ZONA CRITICA DEVE ESSERE SEMPRE VELOCE SENZA PERDITE DI TEMPO E QUASI MAI SUDDIVISA IN ZONE 
+
+esempio:
+
+nome.lock();
+
+//zona critica
+
+nome.unlock();
+
+//codice fuori zona critica
+
+nome.lock();
+
+//ritorno in zona critica
+
+nome.unlock();
+
+qusto può causare problemi in conteggi e lettura/scrittura errati,da evitare il più possibile
+
+ALTRE FUNZIONI E FUNZIONALITà UTILIZZABILI DA SOLE O UNQIUE_LOCK O LOCK_GUARD  
+
+a)owns_lock();
+
+ritorna true se l'unique lock possiede il mutex di solito è utlizzato con l'unique lock di tipo defer_lock
+
+esempio:
+
+{
+unique_lock<mutex> lock(nome,defer_lock);
+
+  if(lock.owns_lock()){
+  lock.lock();//FONDAMENTALE SCRIVERE IL NOME DELL'UNQIUE BLOCK ALTRIMENTI RESTIUISCE SEMPRE FALSE
+
+  //entro zona critica se nessun thread non è gia entrato
+
+  lock.unlock();  
+  }//esco se è gia posseduto da qualcuno la zona critica
+
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LIBRERIA semaphore
+
+un semaphore è simile a un mutex infatti evita sempre il busy wainting è...
+
+HA UNA DIFFERENZA FONDAMENTALE CON IL MUTEX CHE LO RENDE UTILE 
+
+il mutex crea una mutua esclusione cioè nella zona critica può entrare solamente 1 thread alla volta
+
+INVECE il semaphore permette a tot thread di entrare nella zona critica, vanno fatti però controlli adeguati per evitare errori.
+
+dichiarazione:
+2 tipi (dove 1 è uguale a un mutex)
+solitamnete è dichiarata globalmente
+
+couting_semaphore<MAX_VALUE> nome(value);
+
+dove:
+MAX_VALUE=è un valore intero costante non negativo(const size_t oppure const int o const unsigned long long) che indica quanti valori possono entrare in zona critica contemporaneamente
+value=indica quanti posti sono liberi
+
+value può essere modifica attraverso 2 funzioni
+
+nome.acquire();
+nome.release();
+
+nome.acquire()=permette di far entrare il thread in zona critica se value>0 decrementando lo spazio disponibile
+nome.release()=permette dagli altri thread di entrare in zona critica dove aumentando il valore di value
+
+se però ci sono altri thread che vogliono entrare in zona critica però value=0 allora aspetteranno fino a che non ce spazio
+
+CON ASPETTARE INTENDIAMO CHE RILASCIANO LO SPAZIO DELLA CPU EVITANDO BUSY WAITING e quando notano che value!=0 allora entrano in zona critica
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
