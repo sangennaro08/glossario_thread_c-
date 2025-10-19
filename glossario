@@ -12,7 +12,7 @@ thread ->parola chiave che permette di creare un thread
 
 scrittura del thread-> thread nome(nome_funzione,variabili,funzioni,ref(variabile funzione),...);
 
-il thread su c++ viene associato a una funzione cui adopera e ci lavora fino a che non torva un return oppure finisce di lavorare
+il thread su c++ viene associato a una funzione cui adopera e ci lavora fino a che non trova un return oppure finisce di lavorare
 
 il ref() permette di prendere per riferimento la variabile della funzione
 
@@ -30,6 +30,18 @@ nome_thread.join()->funzione che permette al  thread di continuare e dice al mai
 this_thread::sleep_for();
 
 dice al thread di dormire per una quantità di tempo determinato esso lascia lo spazio della CPU evitando il busy waiting
+
+4)
+
+nome_thread.joinable()
+
+funzione che ritorna vero o falso
+
+vero o 1=thread si può fare join(consigliabile)
+falso o 0=thread non si può joinare(fare altre azioni)
+
+ci aiuta molto nella dinamicazione della memoria dinamica,infatti quanto distruggere un oggetto dinamico con un thread dobbiamo chiudere manualmente il thread se 
+dinamicamente allocato se non fatto può creare un crash del programma in run time per evitare fare join del thread se nome.joinable() ritorna true
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 LIBRERIA mutex
 
@@ -43,7 +55,7 @@ per implementarlo bisognerebbe scriverlo globalmente
 
 mutex nome_mutex;
 
-si hanno 3 modi per creare la zona critica crenado così mutua esclusione
+si hanno 3 modi per creare la zona critica creando così mutua esclusione
 
 1) IL lock_guard 
 
@@ -152,7 +164,7 @@ unique_lock<mutex> lock(nome,defer_lock);
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 LIBRERIA semaphore
 
-un semaphore è simile a un mutex infatti evita sempre il busy wainting è...
+un semaphore è simile a un mutex infatti evita sempre il busy wainting e...
 
 HA UNA DIFFERENZA FONDAMENTALE CON IL MUTEX CHE LO RENDE UTILE 
 
@@ -167,7 +179,8 @@ solitamnete è dichiarata globalmente
 couting_semaphore<MAX_VALUE> nome(value);
 
 dove:
-MAX_VALUE=è un valore intero costante non negativo(const size_t oppure const int o const unsigned long long) che indica quanti valori possono entrare in zona critica contemporaneamente
+MAX_VALUE=è un valore intero costante non negativo(const size_t oppure const int o const unsigned long long) che indica quanti valori possono entrare in zona critica
+contemporaneamente
 value=indica quanti posti sono liberi
 
 value può essere modifica attraverso 2 funzioni
@@ -181,12 +194,69 @@ nome.release()=permette dagli altri thread di entrare in zona critica dove aumen
 se però ci sono altri thread che vogliono entrare in zona critica però value=0 allora aspetteranno fino a che non ce spazio
 
 CON ASPETTARE INTENDIAMO CHE RILASCIANO LO SPAZIO DELLA CPU EVITANDO BUSY WAITING e quando notano che value!=0 allora entrano in zona critica
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1)generator un randomazer di numeri migliore di random:
 
+come utilizarlo?
 
+bisogna usare le librerie <random> <cstdlib> per utilizzare il generatore di numeri casuali
 
+dichiarazione:
 
+mt19937 nome(chrono::system_clock::now().time_since_epoch().count() +variabili);
 
+e sotto di lui: o avanti nel programma
 
+uniform_int_distribution<int> nome2(0, 99); 
+qusto crea dei numeri da 0 a 99 (si possono midificare)
+
+num1 = nome2(nome); per ottenere il numero random scrivere questo
+
+se volessino crearlo in un costruttore:
+
+1)scrivere nella classe
+mt19937 nome;
+
+2)scivere nella lista delle dichiarazioni del costruttore
+
+nome(chrono::system_clock::now().time_since_epoch().count())
+
+3)continuare poi nel programma con 
+uniform_int_distribution<int> nome2(0, 99);
+
+e poi
+
+num1 = nome2(nome);
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PROMISE E FUTURE una coppia che permette una trasmissione di informazioni
+
+ottenibile con la libreria <future> utile nella programmazione concorrente
+
+sono una coppia che permette la trasmissione di dati attraverso segnali fatte da funzioni
+
+esse si scrivono così
+
+promise<tipo> nome;
+
+future<tipo> nome2;
+
+tipi solitamente uguali
+
+per collegarli tra di loro fare questo
+
+nome2=nome.get_future();
+
+get_future permette la creazione di un canale tra le due entità in caso di uno scambio di un singolo risultato
+
+per dare il segnale che il risultato sta arrivando scrivere 
+
+nome.set_value(valore);
+
+quando verrà avviato e il valore verrà mandato per ricerverlo deve esserci una linea di codice che lo permette che è 
+
+tipo nome3=nome2.get();//aspetta fino a che non ottiene il valore
 
 
 
